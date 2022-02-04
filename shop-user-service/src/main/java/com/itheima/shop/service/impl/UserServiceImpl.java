@@ -17,10 +17,13 @@ import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.util.Date;
+import java.util.Objects;
 
+import lombok.extern.slf4j.Slf4j;
 import static java.util.Objects.isNull;
 
 @Component
+@Slf4j
 @Service(interfaceClass = IUserService.class)
 public class UserServiceImpl implements IUserService {
 
@@ -40,83 +43,73 @@ public class UserServiceImpl implements IUserService {
 
     @Override
     public Result updateMoneyPaid(TradeUserMoneyLog userMoneyLog) {
-        //1.校验对象、用户、订单、余额金额大小是否合法
-        validateUserMoneyLog(userMoneyLog);
-        Long orderId = userMoneyLog.getOrderId();
-        Long userId = userMoneyLog.getUserId();
+        //1校验参数是否合法
+        if (userMoneyLog == null || userMoneyLog.getUserId() == null || userMoneyLog.getOrderId() == null
+            || userMoneyLog.getUseMoney() == null || userMoneyLog.getUseMoney()
+            .compareTo(BigDecimal.ZERO) <= 0) {
+            CastException.cast(ShopCode.SHOP_REQUEST_PARAMETER_VALID);
+        }
 
-        //2.查询订单余额使用日志
-        int recordNum = getTradeUserMoneyLogByOrderIdAndUserId(orderId, userId);
-        TradeUser tradeUser = userMapper.selectByPrimaryKey(userMoneyLog.getUserId());
+        //2查询订单余额使用日志
+        TradeUserMoneyLogExample userMoneyLogExample = new TradeUserMoneyLogExample();
+        TradeUserMoneyLogExample.Criteria criteria = userMoneyLogExample.createCriteria();
+        criteria.andOrderIdEqualTo(Objects.requireNonNull(userMoneyLog)
+            .getOrderId());
+        criteria.andUserIdEqualTo(userMoneyLog.getUserId());
+        long r = userMoneyLogMapper.countByExample(userMoneyLogExample);
 
-        //3.扣减余额...
+        TradeUser user = userMapper.selectByPrimaryKey(userMoneyLog.getUserId());
+
+        //3扣减余额
         if (userMoneyLog.getMoneyLogType()
             .intValue() == ShopCode.SHOP_USER_MONEY_PAID.getCode()
             .intValue()) {
-            if (recordNum > 0) {
+            if (r > 0) {//已付款
                 //已经付款
                 CastException.cast(ShopCode.SHOP_ORDER_PAY_STATUS_IS_PAY);
             }
             //减余额 = 用户的余额 - 订单（流水对象）里面的钱
-            long moneySpendThisTime = new BigDecimal(tradeUser.getUserMoney()).subtract(userMoneyLog.getUseMoney())
+            long moneySpendThisTime = new BigDecimal(user.getUserMoney()).subtract(userMoneyLog.getUseMoney())
                 .longValue();
-            tradeUser.setUserMoney(moneySpendThisTime);
-            userMapper.updateByPrimaryKey(tradeUser);
+            user.setUserMoney(moneySpendThisTime);
+            userMapper.updateByPrimaryKey(user);
         }
-        //4.回退余额...
+
+        //4回退余额
         if (userMoneyLog.getMoneyLogType()
             .intValue() == ShopCode.SHOP_USER_MONEY_REFUND.getCode()
             .intValue()) {
-            if (recordNum < 0) {
+            if (r < 0) {//未付款
                 //如果没有支付,则不能回退余额
                 CastException.cast(ShopCode.SHOP_ORDER_PAY_STATUS_NO_PAY);
             }
             //防止多次退款
-            validateRefund(userMoneyLog);
+            TradeUserMoneyLogExample userMoneyLogExample1 = new TradeUserMoneyLogExample();
+            TradeUserMoneyLogExample.Criteria criteria1 = userMoneyLogExample1.createCriteria();
+            criteria1.andUserIdEqualTo(userMoneyLog.getUserId());
+            criteria1.andOrderIdEqualTo(userMoneyLog.getOrderId());
+            criteria1.andMoneyLogTypeEqualTo(ShopCode.SHOP_USER_MONEY_REFUND.getCode());
+            long r2 = userMoneyLogMapper.countByExample(userMoneyLogExample1);
+            if (r2 > 0) {//已退过款
+                CastException.cast(ShopCode.SHOP_USER_MONEY_REFUND_ALREADY);
+            }
             //退款 = 用户的余额 + 订单（流水对象）里面的钱
-            tradeUser.setUserMoney(new BigDecimal(tradeUser.getUserMoney()).add(userMoneyLog.getUseMoney())
+            user.setUserMoney(new BigDecimal(user.getUserMoney()).add(userMoneyLog.getUseMoney())
                 .longValue());
-            userMapper.updateByPrimaryKey(tradeUser);
+            userMapper.updateByPrimaryKey(user);
         }
-        //5.记录订单余额使用日志
+
+        //5记录订单余额使用日志
         userMoneyLog.setCreateTime(new Date());
-        userMoneyLogMapper.insert(userMoneyLog);
-        return new Result(ShopCode.SHOP_SUCCESS.getSuccess(), ShopCode.SHOP_SUCCESS.getMessage());
-    }
-
-    /**
-     * 校验退款条件
-     */
-    private void validateRefund(TradeUserMoneyLog userMoneyLog) {
-        TradeUserMoneyLogExample logExample = new TradeUserMoneyLogExample();
-        Criteria criteria1 = logExample.createCriteria();
-        criteria1.andOrderIdEqualTo(userMoneyLog.getOrderId());
-        criteria1.andUserIdEqualTo(userMoneyLog.getUserId());
-        criteria1.andMoneyLogTypeEqualTo(ShopCode.SHOP_USER_MONEY_REFUND.getCode());
-        int record = userMoneyLogMapper.countByExample(logExample);
-        if (record > 0) {
-            CastException.cast(ShopCode.SHOP_USER_MONEY_REFUND_ALREADY);
+        Result result;
+        try {
+            userMoneyLogMapper.insert(userMoneyLog);
+            result = new Result(ShopCode.SHOP_SUCCESS.getSuccess(), ShopCode.SHOP_SUCCESS.getMessage());
+        } catch (Exception e) {
+            log.info(e.toString());
+            result = new Result(ShopCode.SHOP_FAIL.getSuccess(), ShopCode.SHOP_FAIL.getMessage());
         }
+        return result;
     }
 
-    private int getTradeUserMoneyLogByOrderIdAndUserId(Long orderId, Long userId) {
-        TradeUserMoneyLogExample example = new TradeUserMoneyLogExample();
-        Criteria ctr = example.createCriteria();
-
-        ctr.andOrderIdEqualTo(orderId);
-
-        ctr.andUserIdEqualTo(userId);
-
-        int r = userMoneyLogMapper.countByExample(example);
-        return r;
-    }
-
-    private void validateUserMoneyLog(TradeUserMoneyLog userMoneyLog) {
-        //对象、用户、订单、余额数量的校验
-        if (isNull(userMoneyLog) || isNull(userMoneyLog.getUserId()) || isNull(userMoneyLog.getOrderId()) || isNull(
-            userMoneyLog.getUseMoney()) || userMoneyLog.getUseMoney()
-            .compareTo(BigDecimal.ZERO) <= 0) {
-            CastException.cast(ShopCode.SHOP_REQUEST_PARAMETER_VALID);
-        }
-    }
 }
