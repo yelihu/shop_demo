@@ -1,6 +1,0 @@
-com\itheima\shop\mapper\TradeGoodsMapper.class
-com\itheima\shop\mapper\TradeMqConsumerLogMapper.class
-com\itheima\shop\GoodsServiceApplication.class
-com\itheima\shop\mq\CancelMQListener.class
-com\itheima\shop\service\impl\GoodsServiceImpl.class
-com\itheima\shop\mapper\TradeGoodsNumberLogMapper.class
