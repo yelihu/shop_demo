@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="EntryPointsManager">
+    <writeAnnotations>
+      <writeAnnotation name="com.alibaba.dubbo.config.annotation.Reference" />
+    </writeAnnotations>
+  </component>
+  <component name="MavenProjectsManager">
+    <option name="originalFiles">
+      <list>
+        <option value="$PROJECT_DIR$/shop-pojo/pom.xml" />
+        <option value="$PROJECT_DIR$/shop-common/pom.xml" />
+        <option value="$PROJECT_DIR$/shop-parent/pom.xml" />
+        <option value="$PROJECT_DIR$/shop-pay-web/pom.xml" />
+        <option value="$PROJECT_DIR$/shop-order-web/pom.xml" />
+        <option value="$PROJECT_DIR$/shop-pay-service/pom.xml" />
+        <option value="$PROJECT_DIR$/shop-user-service/pom.xml" />
+        <option value="$PROJECT_DIR$/shop-goods-service/pom.xml" />
+        <option value="$PROJECT_DIR$/shop-order-service/pom.xml" />
+        <option value="$PROJECT_DIR$/shop-coupon-service/pom.xml" />
+      </list>
+    </option>
+  </component>
+  <component name="ProjectRootManager" version="2" languageLevel="JDK_1_8" default="true" project-jdk-name="1.8" project-jdk-type="JavaSDK" />
+</project>

@@ -1,0 +1,5 @@
+com\itheima\shop\mapper\TradeUserMoneyLogMapper.class
+com\itheima\shop\service\impl\UserServiceImpl.class
+com\itheima\shop\mq\CancelOrderConsumer.class
+com\itheima\shop\ShopUserServiceApplication.class
+com\itheima\shop\mapper\TradeUserMapper.class

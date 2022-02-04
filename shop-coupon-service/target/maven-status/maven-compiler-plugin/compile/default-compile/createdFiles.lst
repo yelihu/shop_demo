@@ -1,0 +1,4 @@
+com\itheima\shop\service\impl\CouponServiceImpl.class
+com\itheima\shop\mapper\TradeCouponMapper.class
+com\itheima\shop\mq\CancelOrderConsumer.class
+com\itheima\shop\ShopCouponServiceApplication.class

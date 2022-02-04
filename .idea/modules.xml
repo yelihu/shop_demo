@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/.idea/shop.iml" filepath="$PROJECT_DIR$/.idea/shop.iml" />
+      <module fileurl="file://$PROJECT_DIR$/shop-api/shop-api.iml" filepath="$PROJECT_DIR$/shop-api/shop-api.iml" />
+      <module fileurl="file://$PROJECT_DIR$/shop-common/shop-common.iml" filepath="$PROJECT_DIR$/shop-common/shop-common.iml" />
+      <module fileurl="file://$PROJECT_DIR$/shop-coupon-service/shop-coupon-service.iml" filepath="$PROJECT_DIR$/shop-coupon-service/shop-coupon-service.iml" />
+      <module fileurl="file://$PROJECT_DIR$/shop-goods-service/shop-goods-service.iml" filepath="$PROJECT_DIR$/shop-goods-service/shop-goods-service.iml" />
+      <module fileurl="file://$PROJECT_DIR$/shop-order-service/shop-order-service.iml" filepath="$PROJECT_DIR$/shop-order-service/shop-order-service.iml" />
+      <module fileurl="file://$PROJECT_DIR$/shop-order-web/shop-order-web.iml" filepath="$PROJECT_DIR$/shop-order-web/shop-order-web.iml" />
+      <module fileurl="file://$PROJECT_DIR$/shop-parent/shop-parent.iml" filepath="$PROJECT_DIR$/shop-parent/shop-parent.iml" />
+      <module fileurl="file://$PROJECT_DIR$/shop-pay-service/shop-pay-service.iml" filepath="$PROJECT_DIR$/shop-pay-service/shop-pay-service.iml" />
+      <module fileurl="file://$PROJECT_DIR$/shop-pay-web/shop-pay-web.iml" filepath="$PROJECT_DIR$/shop-pay-web/shop-pay-web.iml" />
+      <module fileurl="file://$PROJECT_DIR$/shop-pojo/shop-pojo.iml" filepath="$PROJECT_DIR$/shop-pojo/shop-pojo.iml" />
+      <module fileurl="file://$PROJECT_DIR$/shop-user-service/shop-user-service.iml" filepath="$PROJECT_DIR$/shop-user-service/shop-user-service.iml" />
+    </modules>
+  </component>
+</project>

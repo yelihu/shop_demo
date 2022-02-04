@@ -1,0 +1,3 @@
+com\itheima\shop\mapper\TradeMqProducerTempMapper.class
+com\itheima\shop\mapper\TradePayMapper.class
+com\itheima\shop\service\impl\PayServiceImpl.class
