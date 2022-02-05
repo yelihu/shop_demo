@@ -11,29 +11,30 @@ import org.springframework.web.client.RestOperations;
 import org.springframework.web.client.RestTemplate;
 
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
 import java.util.List;
+
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 @Configuration
 public class RestTemplateConfig {
 
-
     @Bean
-    @ConditionalOnMissingBean({ RestOperations.class, RestTemplate.class })
+    @ConditionalOnMissingBean({RestOperations.class, RestTemplate.class})
     public RestTemplate restTemplate(ClientHttpRequestFactory factory) {
-
         RestTemplate restTemplate = new RestTemplate(factory);
-
-        // 使用 utf-8 编码集的 conver 替换默认的 conver（默认的 string conver 的编码集为"ISO-8859-1"）
-        List<HttpMessageConverter<?>> messageConverters = restTemplate.getMessageConverters();
-        Iterator<HttpMessageConverter<?>> iterator = messageConverters.iterator();
-        while (iterator.hasNext()) {
-            HttpMessageConverter<?> converter = iterator.next();
-            if (converter instanceof StringHttpMessageConverter) {
-                iterator.remove();
-            }
-        }
-        messageConverters.add(new StringHttpMessageConverter(Charset.forName("UTF-8")));
+        // 使用 utf-8 编码集的 convert 替换默认的 convert（默认的 string conver 的编码集为"ISO-8859-1"）
+        List<HttpMessageConverter<?>> converters = restTemplate.getMessageConverters();
+        converters.removeIf(converter -> converter instanceof StringHttpMessageConverter);
+        //等价于下面
+        //while (iterator.hasNext()) {
+        //    HttpMessageConverter<?> converter = iterator.next();
+        //    if (converter instanceof StringHttpMessageConverter) {
+        //        iterator.remove();
+        //    }
+        //}
+        converters.add(new StringHttpMessageConverter(UTF_8));
 
         return restTemplate;
     }
