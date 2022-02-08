@@ -23,6 +23,7 @@ import org.apache.rocketmq.remoting.exception.RemotingException;
 import org.apache.rocketmq.spring.core.RocketMQTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
@@ -48,9 +49,9 @@ public class PayServiceImpl implements IPayService {
 
     @Autowired
     private TradeMqProducerTempMapper mqProducerTempMapper;
-
-    @Autowired
-    private ThreadPoolTaskExecutor threadPoolTaskExecutor;
+    //
+    //@Autowired
+    //private ThreadPoolTaskExecutor threadPoolTaskExecutor;
 
     @Autowired
     private RocketMQTemplate rocketMQTemplate;
@@ -144,32 +145,36 @@ public class PayServiceImpl implements IPayService {
     /**
      * 多线程方式发送支付消息，多线程处理防止消息堆积
      */
-    private void sendPaySuccessMessageAsync(TradePay tradePay) {
-        threadPoolTaskExecutor.submit(() -> {
-            //发送消息到MQ
-            SendResult result = null;
-            try {
-                result = sendMessage(topic, tag, String.valueOf(tradePay.getPayId()), JSON.toJSONString(tradePay));
-            } catch (Exception e) {
-                e.printStackTrace();
-                log.error("消息发送失败！！订单编号:{}", tradePay.getPayId());
-            }
-            //等待发送结果,如果MQ接受到消息,删除发送成功的消息
-            if (Objects.equals(result.getSendStatus(), SendStatus.SEND_OK)) {
-                log.info("消息发送成功");
-                mqProducerTempMapper.deleteByPrimaryKey(TradeMqProducerTemp.builder()
-                    .id(String.valueOf(idWorker.nextId()))
-                    .groupName(groupName)
-                    .msgTopic(topic)
-                    .msgTag(tag)
-                    .msgKey(String.valueOf(tradePay.getPayId()))
-                    .msgBody(JSON.toJSONString(tradePay))
-                    .createTime(new Date())
-                    .build()
-                    .getId());
-                log.info("持久化的消息发送流水记录在数据库已清理！");
-            }
-        });
+    @Async("payThreadPool")
+    public void sendPaySuccessMessageAsync(TradePay tradePay) {
+        //threadPoolTaskExecutor.submit(() -> {
+        //
+        //});
+
+        //发送消息到MQ
+        SendResult result = null;
+        try {
+            result = sendMessage(topic, tag, String.valueOf(tradePay.getPayId()), JSON.toJSONString(tradePay));
+        } catch (Exception e) {
+            e.printStackTrace();
+            log.error("消息发送失败！！订单编号:{}", tradePay.getPayId());
+        }
+        //等待发送结果,如果MQ接受到消息,删除发送成功的消息
+        if (result != null && Objects.equals(result.getSendStatus(), SendStatus.SEND_OK)) {
+            log.info("消息发送成功");
+            mqProducerTempMapper.deleteByPrimaryKey(TradeMqProducerTemp.builder()
+                .id(String.valueOf(idWorker.nextId()))
+                .groupName(groupName)
+                .msgTopic(topic)
+                .msgTag(tag)
+                .msgKey(String.valueOf(tradePay.getPayId()))
+                .msgBody(JSON.toJSONString(tradePay))
+                .createTime(new Date())
+                .build()
+                .getId());
+            log.info("持久化的消息发送流水记录在数据库已清理！");
+        }
+
     }
 
     /**
@@ -207,8 +212,7 @@ public class PayServiceImpl implements IPayService {
             CastException.cast(SHOP_MQ_MESSAGE_BODY_IS_EMPTY);
         }
         Message message = new Message(topic, tag, key, body.getBytes());
-        SendResult sendResult = rocketMQTemplate.getProducer()
+        return rocketMQTemplate.getProducer()
             .send(message);
-        return sendResult;
     }
 }

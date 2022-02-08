@@ -13,6 +13,11 @@
     <artifactId>shop-pay-service</artifactId>
 
     <dependencies>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.18.20</version>
+        </dependency>
 
         <!--mybatis-springboot-->
         <dependency>
